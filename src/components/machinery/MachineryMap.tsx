@@ -1,13 +1,21 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { useApp } from '@/contexts/AppContext';
-import { MapPin, List, Factory } from 'lucide-react';
+import { MapPin, List, Factory, Settings } from 'lucide-react';
+import { Loader } from '@googlemaps/js-api-loader';
 
 export const MachineryMap = () => {
   const { machinery } = useApp();
+  const mapRef = useRef<HTMLDivElement>(null);
+  const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [apiKey, setApiKey] = useState('');
+  const [showApiKeyInput, setShowApiKeyInput] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   // Mock coordinates for demonstration - in real app, you'd get these from machine data
   const getMockCoordinates = (location: string) => {
@@ -34,90 +42,149 @@ export const MachineryMap = () => {
     }
   };
 
+  const getMarkerColor = (status: string) => {
+    switch (status) {
+      case 'operational':
+        return '#10B981'; // green
+      case 'maintenance':
+        return '#F59E0B'; // yellow
+      case 'offline':
+        return '#EF4444'; // red
+      default:
+        return '#6B7280'; // gray
+    }
+  };
+
+  const initializeMap = async () => {
+    if (!apiKey.trim()) {
+      setError('Please enter your Google Maps API key');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const loader = new Loader({
+        apiKey: apiKey,
+        version: 'weekly',
+        libraries: ['maps']
+      });
+
+      await loader.load();
+
+      if (mapRef.current) {
+        const mapInstance = new google.maps.Map(mapRef.current, {
+          center: { lat: 40.7128, lng: -74.0060 }, // Default to NYC
+          zoom: 12,
+          mapTypeId: google.maps.MapTypeId.ROADMAP,
+        });
+
+        setMap(mapInstance);
+        setShowApiKeyInput(false);
+
+        // Add markers for each machine
+        machinery.forEach((machine) => {
+          const coords = getMockCoordinates(machine.location);
+          
+          const marker = new google.maps.Marker({
+            position: coords,
+            map: mapInstance,
+            title: machine.name,
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 8,
+              fillColor: getMarkerColor(machine.status),
+              fillOpacity: 1,
+              strokeColor: '#ffffff',
+              strokeWeight: 2,
+            },
+          });
+
+          const infoWindow = new google.maps.InfoWindow({
+            content: `
+              <div class="p-2">
+                <h3 class="font-medium text-sm">${machine.name}</h3>
+                <p class="text-xs text-gray-600">${machine.location}</p>
+                <p class="text-xs text-gray-600">${machine.type} - ${machine.model}</p>
+                <span class="inline-block px-2 py-1 text-xs rounded ${getStatusColor(machine.status)}">${machine.status}</span>
+              </div>
+            `,
+          });
+
+          marker.addListener('click', () => {
+            infoWindow.open(mapInstance, marker);
+          });
+        });
+      }
+    } catch (err) {
+      setError('Failed to load Google Maps. Please check your API key.');
+      console.error('Google Maps loading error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* API Key Input */}
+      {showApiKeyInput && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Google Maps Setup
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-gray-600">
+              To display the map, please enter your Google Maps API key. You can get one from the{' '}
+              <a 
+                href="https://console.cloud.google.com/google/maps-apis" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                Google Cloud Console
+              </a>
+            </p>
+            <div className="flex gap-2">
+              <Input
+                type="password"
+                placeholder="Enter your Google Maps API key"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                className="flex-1"
+              />
+              <Button 
+                onClick={initializeMap}
+                disabled={isLoading}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              >
+                {isLoading ? 'Loading...' : 'Load Map'}
+              </Button>
+            </div>
+            {error && (
+              <p className="text-sm text-red-600">{error}</p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Map Container */}
-      <Card className="h-96">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MapPin className="h-5 w-5" />
-            Machine Locations
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="relative w-full h-full bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg overflow-hidden">
-            {/* Simulated Map Background */}
-            <div className="absolute inset-0 opacity-20">
-              <div className="grid grid-cols-8 grid-rows-6 h-full">
-                {[...Array(48)].map((_, i) => (
-                  <div
-                    key={i}
-                    className={`border border-gray-300 ${
-                      Math.random() > 0.7 ? 'bg-green-100' : 'bg-blue-50'
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Machine Markers */}
-            {machinery.map((machine, index) => {
-              const coords = getMockCoordinates(machine.location);
-              const x = ((coords.lng + 74.1) / 0.3) * 100; // Convert to percentage
-              const y = ((40.8 - coords.lat) / 0.1) * 100; // Convert to percentage
-              
-              return (
-                <div
-                  key={machine.id}
-                  className="absolute transform -translate-x-1/2 -translate-y-1/2 group cursor-pointer"
-                  style={{
-                    left: `${Math.max(10, Math.min(90, x))}%`,
-                    top: `${Math.max(10, Math.min(90, y))}%`,
-                  }}
-                >
-                  <div
-                    className={`w-4 h-4 rounded-full border-2 border-white shadow-lg ${
-                      machine.status === 'operational'
-                        ? 'bg-green-500'
-                        : machine.status === 'maintenance'
-                        ? 'bg-yellow-500'
-                        : 'bg-red-500'
-                    } hover:scale-125 transition-transform duration-200`}
-                  />
-                  
-                  {/* Tooltip */}
-                  <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white p-2 rounded shadow-lg border opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
-                    <div className="text-sm font-medium">{machine.name}</div>
-                    <div className="text-xs text-gray-600">{machine.location}</div>
-                    <Badge className={`text-xs ${getStatusColor(machine.status)}`}>
-                      {machine.status}
-                    </Badge>
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* Legend */}
-            <div className="absolute bottom-4 left-4 bg-white p-3 rounded-lg shadow-lg">
-              <div className="text-sm font-medium mb-2">Status Legend</div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 text-xs">
-                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  <span>Operational</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                  <span>Maintenance</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                  <span>Offline</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {!showApiKeyInput && (
+        <Card className="h-96">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5" />
+              Machine Locations
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div ref={mapRef} className="w-full h-full rounded-lg" />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Machine List with Locations */}
       <Card>
