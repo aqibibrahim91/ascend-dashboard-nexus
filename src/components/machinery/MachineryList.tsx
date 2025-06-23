@@ -92,39 +92,6 @@ export const MachineryList = () => {
     );
   }
 
-  if (viewMode === "map") {
-    return (
-      <div className="space-y-6">
-        {/* Header with Map Toggle */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900">Machinery Map</h2>
-            <p className="text-gray-600">View machine locations and status</p>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setViewMode("list")}
-              className="flex items-center gap-2"
-            >
-              <List className="h-4 w-4" />
-              List View
-            </Button>
-            {/* <Button
-              onClick={() => setShowForm(true)}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Machinery
-            </Button> */}
-          </div>
-        </div>
-
-        <MachineryMap />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* Header */}
