@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useApp } from '@/contexts/AppContext';
 import { CustomerForm } from './CustomerForm';
-import { Plus, Search, Edit, Trash2, Mail, Phone, Building } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Mail, Phone, Building, Users, QrCode } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export const CustomerList = () => {
@@ -38,6 +38,19 @@ export const CustomerList = () => {
   const handleFormSuccess = () => {
     setShowForm(false);
     setEditingCustomer(null);
+  };
+
+  const generateQRCode = (customer) => {
+    const qrData = `Customer: ${customer.name}\nEmail: ${customer.email}\nCompany: ${customer.company}\nPhone: ${customer.phone}`;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}`;
+    
+    // Open QR code in new window
+    window.open(qrUrl, '_blank');
+    
+    toast({
+      title: "QR Code Generated",
+      description: "QR code opened in new window.",
+    });
   };
 
   if (showForm) {
@@ -112,6 +125,14 @@ export const CustomerList = () => {
                 >
                   <Edit className="h-4 w-4 mr-1" />
                   Edit
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => generateQRCode(customer)}
+                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                >
+                  <QrCode className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="outline"

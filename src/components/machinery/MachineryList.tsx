@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useApp } from '@/contexts/AppContext';
 import { MachineryForm } from './MachineryForm';
-import { Plus, Search, Edit, Trash2, MapPin, Calendar, Hash } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, MapPin, Calendar, Hash, Factory, QrCode } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export const MachineryList = () => {
@@ -39,6 +39,19 @@ export const MachineryList = () => {
   const handleFormSuccess = () => {
     setShowForm(false);
     setEditingMachinery(null);
+  };
+
+  const generateQRCode = (machine) => {
+    const qrData = `Machine: ${machine.name}\nType: ${machine.type}\nModel: ${machine.model}\nSerial: ${machine.serialNumber}\nLocation: ${machine.location}\nStatus: ${machine.status}`;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}`;
+    
+    // Open QR code in new window
+    window.open(qrUrl, '_blank');
+    
+    toast({
+      title: "QR Code Generated",
+      description: "QR code opened in new window.",
+    });
   };
 
   const getStatusColor = (status: string) => {
@@ -124,6 +137,14 @@ export const MachineryList = () => {
                 >
                   <Edit className="h-4 w-4 mr-1" />
                   Edit
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => generateQRCode(machine)}
+                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                >
+                  <QrCode className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="outline"
