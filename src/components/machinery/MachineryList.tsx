@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useApp } from '@/contexts/AppContext';
 import { MachineryForm } from './MachineryForm';
-import { Plus, Search, Edit, Trash2, MapPin, Calendar, Hash, Factory, QrCode } from 'lucide-react';
+import { MachineryMap } from './MachineryMap';
+import { Plus, Search, Edit, Trash2, MapPin, Calendar, Hash, Factory, QrCode, Map, List } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export const MachineryList = () => {
@@ -15,6 +15,7 @@ export const MachineryList = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingMachinery, setEditingMachinery] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
   const filteredMachinery = machinery.filter(machine =>
     machine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -71,6 +72,39 @@ export const MachineryList = () => {
     return <MachineryForm machinery={editingMachinery} onSuccess={handleFormSuccess} />;
   }
 
+  if (viewMode === 'map') {
+    return (
+      <div className="space-y-6">
+        {/* Header with Map Toggle */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h2 className="text-3xl font-bold text-gray-900">Machinery Map</h2>
+            <p className="text-gray-600">View machine locations and status</p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setViewMode('list')}
+              className="flex items-center gap-2"
+            >
+              <List className="h-4 w-4" />
+              List View
+            </Button>
+            <Button 
+              onClick={() => setShowForm(true)}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Machinery
+            </Button>
+          </div>
+        </div>
+
+        <MachineryMap />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -79,13 +113,23 @@ export const MachineryList = () => {
           <h2 className="text-3xl font-bold text-gray-900">Machinery</h2>
           <p className="text-gray-600">Manage your machinery inventory</p>
         </div>
-        <Button 
-          onClick={() => setShowForm(true)}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Machinery
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setViewMode('map')}
+            className="flex items-center gap-2"
+          >
+            <Map className="h-4 w-4" />
+            Map View
+          </Button>
+          <Button 
+            onClick={() => setShowForm(true)}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Machinery
+          </Button>
+        </div>
       </div>
 
       {/* Search */}
