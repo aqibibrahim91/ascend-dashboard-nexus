@@ -1,27 +1,40 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { useApp } from '@/contexts/AppContext';
-import { MachineryForm } from './MachineryForm';
-import { MachineryMap } from './MachineryMap';
-import { Plus, Search, Edit, Trash2, MapPin, Calendar, Hash, Factory, QrCode, Map, List } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { useApp } from "@/contexts/AppContext";
+import { MachineryForm } from "./MachineryForm";
+import MachineryMap from "./MachineryMap";
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  MapPin,
+  Calendar,
+  Hash,
+  Factory,
+  QrCode,
+  Map,
+  List,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export const MachineryList = () => {
   const { machinery, deleteMachinery } = useApp();
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [editingMachinery, setEditingMachinery] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [viewMode, setViewMode] = useState<"list" | "map">("list");
 
-  const filteredMachinery = machinery.filter(machine =>
-    machine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    machine.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    machine.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    machine.location.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredMachinery = machinery.filter(
+    (machine) =>
+      machine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      machine.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      machine.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      machine.location.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleEdit = (machine) => {
@@ -44,11 +57,13 @@ export const MachineryList = () => {
 
   const generateQRCode = (machine) => {
     const qrData = `Machine: ${machine.name}\nType: ${machine.type}\nModel: ${machine.model}\nSerial: ${machine.serialNumber}\nLocation: ${machine.location}\nStatus: ${machine.status}`;
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}`;
-    
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+      qrData
+    )}`;
+
     // Open QR code in new window
-    window.open(qrUrl, '_blank');
-    
+    window.open(qrUrl, "_blank");
+
     toast({
       title: "QR Code Generated",
       description: "QR code opened in new window.",
@@ -57,51 +72,23 @@ export const MachineryList = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'operational':
-        return 'bg-green-100 text-green-800';
-      case 'maintenance':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'offline':
-        return 'bg-red-100 text-red-800';
+      case "operational":
+        return "bg-green-100 text-green-800";
+      case "maintenance":
+        return "bg-yellow-100 text-yellow-800";
+      case "offline":
+        return "bg-red-100 text-red-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   if (showForm) {
-    return <MachineryForm machinery={editingMachinery} onSuccess={handleFormSuccess} />;
-  }
-
-  if (viewMode === 'map') {
     return (
-      <div className="space-y-6">
-        {/* Header with Map Toggle */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900">Machinery Map</h2>
-            <p className="text-gray-600">View machine locations and status</p>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setViewMode('list')}
-              className="flex items-center gap-2"
-            >
-              <List className="h-4 w-4" />
-              List View
-            </Button>
-            <Button 
-              onClick={() => setShowForm(true)}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Machinery
-            </Button>
-          </div>
-        </div>
-
-        <MachineryMap />
-      </div>
+      <MachineryForm
+        machinery={editingMachinery}
+        onSuccess={handleFormSuccess}
+      />
     );
   }
 
@@ -116,19 +103,19 @@ export const MachineryList = () => {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={() => setViewMode('map')}
+            onClick={() => setViewMode("map")}
             className="flex items-center gap-2"
           >
             <Map className="h-4 w-4" />
             Map View
           </Button>
-          <Button 
+          {/* <Button
             onClick={() => setShowForm(true)}
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Machinery
-          </Button>
+          </Button> */}
         </div>
       </div>
 
@@ -146,12 +133,17 @@ export const MachineryList = () => {
       {/* Machinery Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredMachinery.map((machine) => (
-          <Card key={machine.id} className="hover:shadow-lg transition-shadow duration-200">
+          <Card
+            key={machine.id}
+            className="hover:shadow-lg transition-shadow duration-200"
+          >
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div>
                   <CardTitle className="text-lg">{machine.name}</CardTitle>
-                  <p className="text-sm text-gray-600">{machine.type} - {machine.model}</p>
+                  <p className="text-sm text-gray-600">
+                    {machine.type} - {machine.model}
+                  </p>
                 </div>
                 <Badge className={getStatusColor(machine.status)}>
                   {machine.status}
@@ -169,9 +161,12 @@ export const MachineryList = () => {
               </div>
               <div className="flex items-center space-x-2 text-sm text-gray-600">
                 <Calendar className="h-4 w-4" />
-                <span>Purchased: {new Date(machine.purchaseDate).toLocaleDateString()}</span>
+                <span>
+                  Purchased:{" "}
+                  {new Date(machine.purchaseDate).toLocaleDateString()}
+                </span>
               </div>
-              
+
               <div className="flex space-x-2 pt-2">
                 <Button
                   variant="outline"
@@ -209,12 +204,16 @@ export const MachineryList = () => {
           <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Factory className="h-12 w-12 text-gray-400" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No machinery found</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No machinery found
+          </h3>
           <p className="text-gray-600 mb-4">
-            {searchTerm ? 'Try adjusting your search terms' : 'Get started by adding your first machinery'}
+            {searchTerm
+              ? "Try adjusting your search terms"
+              : "Get started by adding your first machinery"}
           </p>
           {!searchTerm && (
-            <Button 
+            <Button
               onClick={() => setShowForm(true)}
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             >
