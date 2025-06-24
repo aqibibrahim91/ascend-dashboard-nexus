@@ -18,8 +18,18 @@ import {
   QrCode,
   Map,
   List,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export const MachineryList = () => {
   const { machinery, deleteMachinery } = useApp();
@@ -27,7 +37,7 @@ export const MachineryList = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingMachinery, setEditingMachinery] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [viewMode, setViewMode] = useState<"list" | "map">("list");
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
   const filteredMachinery = machinery.filter(
     (machine) =>
@@ -36,6 +46,30 @@ export const MachineryList = () => {
       machine.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
       machine.location.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const sortedMachinery = React.useMemo(() => {
+    let sortableItems = [...filteredMachinery];
+    if (sortConfig.key) {
+      sortableItems.sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+          return sortConfig.direction === "asc" ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+          return sortConfig.direction === "asc" ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [filteredMachinery, sortConfig]);
+
+  const requestSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+  };
 
   const handleEdit = (machine) => {
     setEditingMachinery(machine);
@@ -61,7 +95,6 @@ export const MachineryList = () => {
       qrData
     )}`;
 
-    // Open QR code in new window
     window.open(qrUrl, "_blank");
 
     toast({
@@ -100,23 +133,13 @@ export const MachineryList = () => {
           <h2 className="text-3xl font-bold text-gray-900">Machinery</h2>
           <p className="text-gray-600">Manage your machinery inventory</p>
         </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setViewMode("map")}
-            className="flex items-center gap-2"
-          >
-            <Map className="h-4 w-4" />
-            Map View
-          </Button>
-          {/* <Button
-            onClick={() => setShowForm(true)}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Machinery
-          </Button> */}
-        </div>
+        {/* <Button
+          onClick={() => setShowForm(true)}
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add Machinery
+        </Button> */}
       </div>
 
       {/* Search */}
@@ -130,74 +153,98 @@ export const MachineryList = () => {
         />
       </div>
 
-      {/* Machinery Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredMachinery.map((machine) => (
-          <Card
-            key={machine.id}
-            className="hover:shadow-lg transition-shadow duration-200"
-          >
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div>
-                  <CardTitle className="text-lg">{machine.name}</CardTitle>
-                  <p className="text-sm text-gray-600">
-                    {machine.type} - {machine.model}
-                  </p>
-                </div>
-                <Badge className={getStatusColor(machine.status)}>
-                  {machine.status}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <Hash className="h-4 w-4" />
-                <span>{machine.serialNumber}</span>
-              </div>
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <MapPin className="h-4 w-4" />
-                <span>{machine.location}</span>
-              </div>
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <Calendar className="h-4 w-4" />
-                <span>
-                  Purchased:{" "}
-                  {new Date(machine.purchaseDate).toLocaleDateString()}
-                </span>
-              </div>
-
-              <div className="flex space-x-2 pt-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEdit(machine)}
-                  className="flex-1"
+      {/* Machinery Table */}
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead
+                  className="cursor-pointer hover:bg-gray-50"
+                  onClick={() => requestSort("name")}
                 >
-                  <Edit className="h-4 w-4 mr-1" />
-                  Edit
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => generateQRCode(machine)}
-                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                  <div className="flex items-center">
+                    Name
+                    {sortConfig.key === "name" &&
+                      (sortConfig.direction === "asc" ? (
+                        <ChevronUp className="h-4 w-4 ml-1" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 ml-1" />
+                      ))}
+                  </div>
+                </TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Model</TableHead>
+                <TableHead>Serial</TableHead>
+                <TableHead
+                  className="cursor-pointer hover:bg-gray-50"
+                  onClick={() => requestSort("location")}
                 >
-                  <QrCode className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDelete(machine.id)}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                  <div className="flex items-center">
+                    Location
+                    {sortConfig.key === "location" &&
+                      (sortConfig.direction === "asc" ? (
+                        <ChevronUp className="h-4 w-4 ml-1" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 ml-1" />
+                      ))}
+                  </div>
+                </TableHead>
+                <TableHead>Purchase Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sortedMachinery.map((machine) => (
+                <TableRow key={machine.id} className="hover:bg-gray-50">
+                  <TableCell className="font-medium">{machine.name}</TableCell>
+                  <TableCell>{machine.type}</TableCell>
+                  <TableCell>{machine.model}</TableCell>
+                  <TableCell>{machine.serialNumber}</TableCell>
+                  <TableCell>{machine.location}</TableCell>
+                  <TableCell>
+                    {new Date(machine.purchaseDate).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={getStatusColor(machine.status)}>
+                      {machine.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(machine)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => generateQRCode(machine)}
+                        className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                      >
+                        <QrCode className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(machine.id)}
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
       {filteredMachinery.length === 0 && (
         <div className="text-center py-12">

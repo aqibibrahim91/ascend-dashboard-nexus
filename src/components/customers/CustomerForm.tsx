@@ -1,20 +1,31 @@
-
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useApp, Customer } from '@/contexts/AppContext';
-import { useToast } from '@/hooks/use-toast';
+import React from "react";
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useApp, Customer } from "@/contexts/AppContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface CustomerFormData {
   name: string;
   email: string;
   phone: string;
   company: string;
-  status: 'active' | 'inactive';
+  status: "active" | "inactive";
 }
 
 interface CustomerFormProps {
@@ -25,20 +36,28 @@ interface CustomerFormProps {
 export const CustomerForm = ({ customer, onSuccess }: CustomerFormProps) => {
   const { addCustomer, updateCustomer } = useApp();
   const { toast } = useToast();
-  
-  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<CustomerFormData>({
-    defaultValues: customer ? {
-      name: customer.name,
-      email: customer.email,
-      phone: customer.phone,
-      company: customer.company,
-      status: customer.status
-    } : {
-      status: 'active'
-    }
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    watch,
+  } = useForm<CustomerFormData>({
+    defaultValues: customer
+      ? {
+          name: customer.name,
+          email: customer.email,
+          phone: customer.phone,
+          company: customer.company,
+          status: customer.status,
+        }
+      : {
+          status: "active",
+        },
   });
 
-  const status = watch('status');
+  const status = watch("status");
 
   const onSubmit = (data: CustomerFormData) => {
     if (customer) {
@@ -60,9 +79,11 @@ export const CustomerForm = ({ customer, onSuccess }: CustomerFormProps) => {
   return (
     <Card className="max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle>{customer ? 'Edit Customer' : 'Add New Customer'}</CardTitle>
+        <CardTitle>{customer ? "Edit Customer" : "Add New Customer"}</CardTitle>
         <CardDescription>
-          {customer ? 'Update customer information' : 'Fill in the details to add a new customer'}
+          {customer
+            ? "Update customer information"
+            : "Fill in the details to add a new customer"}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -73,8 +94,8 @@ export const CustomerForm = ({ customer, onSuccess }: CustomerFormProps) => {
               <Input
                 id="name"
                 placeholder="Enter full name"
-                {...register('name', { required: 'Name is required' })}
-                className={errors.name ? 'border-red-500' : ''}
+                {...register("name", { required: "Name is required" })}
+                className={errors.name ? "border-red-500" : ""}
               />
               {errors.name && (
                 <p className="text-sm text-red-500">{errors.name.message}</p>
@@ -87,14 +108,14 @@ export const CustomerForm = ({ customer, onSuccess }: CustomerFormProps) => {
                 id="email"
                 type="email"
                 placeholder="Enter email address"
-                {...register('email', { 
-                  required: 'Email is required',
+                {...register("email", {
+                  required: "Email is required",
                   pattern: {
                     value: /\S+@\S+\.\S+/,
-                    message: 'Please enter a valid email'
-                  }
+                    message: "Please enter a valid email",
+                  },
                 })}
-                className={errors.email ? 'border-red-500' : ''}
+                className={errors.email ? "border-red-500" : ""}
               />
               {errors.email && (
                 <p className="text-sm text-red-500">{errors.email.message}</p>
@@ -106,8 +127,8 @@ export const CustomerForm = ({ customer, onSuccess }: CustomerFormProps) => {
               <Input
                 id="phone"
                 placeholder="Enter phone number"
-                {...register('phone', { required: 'Phone number is required' })}
-                className={errors.phone ? 'border-red-500' : ''}
+                {...register("phone", { required: "Phone number is required" })}
+                className={errors.phone ? "border-red-500" : ""}
               />
               {errors.phone && (
                 <p className="text-sm text-red-500">{errors.phone.message}</p>
@@ -119,8 +140,8 @@ export const CustomerForm = ({ customer, onSuccess }: CustomerFormProps) => {
               <Input
                 id="company"
                 placeholder="Enter company name"
-                {...register('company', { required: 'Company is required' })}
-                className={errors.company ? 'border-red-500' : ''}
+                {...register("company", { required: "Company is required" })}
+                className={errors.company ? "border-red-500" : ""}
               />
               {errors.company && (
                 <p className="text-sm text-red-500">{errors.company.message}</p>
@@ -129,7 +150,12 @@ export const CustomerForm = ({ customer, onSuccess }: CustomerFormProps) => {
 
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-              <Select value={status} onValueChange={(value) => setValue('status', value as 'active' | 'inactive')}>
+              <Select
+                value={status}
+                onValueChange={(value) =>
+                  setValue("status", value as "active" | "inactive")
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
@@ -145,8 +171,11 @@ export const CustomerForm = ({ customer, onSuccess }: CustomerFormProps) => {
             <Button type="button" variant="outline" onClick={onSuccess}>
               Cancel
             </Button>
-            <Button type="submit" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-              {customer ? 'Update Customer' : 'Add Customer'}
+            <Button
+              type="submit"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            >
+              {customer ? "Update Customer" : "Add Customer"}
             </Button>
           </div>
         </form>

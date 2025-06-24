@@ -1,5 +1,12 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
+export interface CustomerDocument {
+  id: string;
+  name: string;
+  fileUrl: string;
+  qrCode?: string;
+  createdAt: string;
+}
 export interface Customer {
   id: string;
   name: string;
@@ -8,6 +15,7 @@ export interface Customer {
   company: string;
   status: "active" | "inactive";
   createdAt: string;
+  documents?: CustomerDocument[];
 }
 
 export interface Machinery {
@@ -32,6 +40,10 @@ interface AppContextType {
   updateMachinery: (id: string, machinery: Partial<Machinery>) => void;
   deleteCustomer: (id: string) => void;
   deleteMachinery: (id: string) => void;
+  addCustomerDocument: (
+    customerId: string,
+    document: Omit<CustomerDocument, "id">
+  ) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -42,16 +54,34 @@ const DUMMY_CUSTOMERS: Customer[] = [
     id: "1",
     name: "John Doe",
     email: "john@example.com",
-    phone: "+1234567890",
+    phone: "+61234567890",
     company: "Tech Corp",
     status: "active",
     createdAt: "2024-01-15",
+    documents: [
+      {
+        id: "doc1",
+        name: "Service Agreement",
+        fileUrl: "https://example.com/docs/service-agreement.pdf",
+        qrCode:
+          "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=Service%20Agreement",
+        createdAt: "2024-01-16",
+      },
+      {
+        id: "doc2",
+        name: "Invoice January 2024",
+        fileUrl: "https://example.com/docs/invoice-jan-2024.pdf",
+        qrCode:
+          "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=Invoice%20January%202024",
+        createdAt: "2024-01-20",
+      },
+    ],
   },
   {
     id: "2",
     name: "Jane Smith",
     email: "jane@example.com",
-    phone: "+1234567891",
+    phone: "+61234567891",
     company: "Innovation Inc",
     status: "active",
     createdAt: "2024-01-20",
@@ -129,6 +159,26 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const deleteMachinery = (id: string) => {
     setMachinery((prev) => prev.filter((machine) => machine.id !== id));
   };
+  const addCustomerDocument = (
+    customerId: string,
+    documentData: Omit<CustomerDocument, "id">
+  ) => {
+    const newDocument: CustomerDocument = {
+      ...documentData,
+      id: Date.now().toString(),
+    };
+
+    setCustomers((prev) =>
+      prev.map((customer) =>
+        customer.id === customerId
+          ? {
+              ...customer,
+              documents: [...(customer.documents || []), newDocument],
+            }
+          : customer
+      )
+    );
+  };
 
   return (
     <AppContext.Provider
@@ -141,6 +191,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         updateMachinery,
         deleteCustomer,
         deleteMachinery,
+        addCustomerDocument,
       }}
     >
       {children}
