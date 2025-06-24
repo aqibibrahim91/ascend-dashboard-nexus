@@ -29,15 +29,15 @@ export const Sidebar = ({
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "customers", label: "Customers", icon: Users },
     { id: "machinery", label: "Machinery", icon: Factory },
-    { id: "analytics", label: "Analytics", icon: BarChart3 },
-    { id: "settings", label: "Settings", icon: Settings },
+    // { id: "analytics", label: "Analytics", icon: BarChart3 },
+    // { id: "settings", label: "Settings", icon: Settings },
   ];
 
   const clientMenuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "machinery", label: "My Machinery", icon: Factory },
-    { id: "profile", label: "Profile", icon: User },
-    { id: "settings", label: "Settings", icon: Settings },
+    // { id: "profile", label: "Profile", icon: User },
+    // { id: "settings", label: "Settings", icon: Settings },
   ];
 
   const menuItems = user?.role === "admin" ? adminMenuItems : clientMenuItems;
